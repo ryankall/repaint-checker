@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pine Script Repainting Checker by RyanKall</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        textarea {
+            width: 100%;
+            height: 300px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: vertical;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 16px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #results {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            border-radius: 4px;
+            color: #856404;
+        }
+        #results.success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Pine Script Repainting Checker by Ryan Kall</h1>
+    
+    <textarea id="pineScript" placeholder="Paste your Pine Script code here..."></textarea>
+    
+    <button onclick="checkRepainting()">Check for Repainting</button>
+    
+    <div id="results" style="display: none;"></div>
+    
+    <script>
+        // Define patterns that may cause repainting
+        const repaintingPatterns = [
+            { 
+                regex: /security\s*\(.*lookahead\s*=\s*true\s*\)/gi, 
+                message: "Usage of `lookahead=true` in `security()` function can cause repainting."
+            },
+            { 
+                regex: /plot\s*\(.*\bclose\b.*\)/gi, 
+                message: "Directly plotting `close` price may cause repainting."
+            },
+            { 
+                regex: /\[\d+\]/g, 
+                message: "Future bar indexing (e.g., `close[1]`, `high[2]`) can cause repainting."
+            },
+            { 
+                regex: /var\b/g, 
+                message: "Usage of `var` keyword may lead to variables being calculated incorrectly."
+            },
+            { 
+                regex: /\bta\.(highest|lowest|tr|adx|atr|rsi|stoch)\b/gi, 
+                message: "Usage of certain TA functions (e.g., `ta.highest`, `ta.rsi`) can cause repainting if misused."
+            }
+        ];
+
+        function checkRepainting() {
+            const script = document.getElementById('pineScript').value;
+            const resultsDiv = document.getElementById('results');
+            let issues = [];
+
+            repaintingPatterns.forEach(pattern => {
+                const matches = script.match(pattern.regex);
+                if (matches) {
+                    matches.forEach(match => {
+                        issues.push(`${pattern.message}\nMatched: "${match.trim()}"`);
+                    });
+                }
+            });
+
+            if (issues.length === 0) {
+                resultsDiv.style.display = 'block';
+                resultsDiv.className = 'success';
+                resultsDiv.innerHTML = "<strong>No repainting issues detected.</strong>";
+            } else {
+                resultsDiv.style.display = 'block';
+                resultsDiv.className = '';
+                resultsDiv.innerHTML = "<strong>Potential Repainting Issues Found:</strong><ul>" +
+                    issues.map(issue => `<li>${issue}</li>`).join('') +
+                    "</ul>";
+            }
+        }
+    </script>
+
+</body>
+</html>
