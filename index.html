@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Pine Script Repainting Checker by RyanKall</title>
+    <title>Pine Script Repainting Checker</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -55,7 +55,7 @@
 </head>
 <body>
 
-    <h1>Pine Script Repainting Checker by Ryan Kall</h1>
+    <h1>Pine Script Repainting Checker by RyanKall</h1>
     
     <textarea id="pineScript" placeholder="Paste your Pine Script code here..."></textarea>
     
@@ -85,6 +85,14 @@
             { 
                 regex: /\bta\.(highest|lowest|tr|adx|atr|rsi|stoch)\b/gi, 
                 message: "Usage of certain TA functions (e.g., `ta.highest`, `ta.rsi`) can cause repainting if misused."
+            },
+            { 
+                regex: /plot\s*\([^)]*offset\s*=\s*-\d+/gi, 
+                message: "Negative `offset` in `plot()` function can cause repainting by shifting plots to the left (future)."
+            },
+            { 
+                regex: /plotshape\s*\([^)]*offset\s*=\s*-\d+/gi, 
+                message: "Negative `offset` in `plotshape()` function can cause repainting by shifting shapes to the left (future)."
             }
         ];
 
@@ -97,7 +105,9 @@
                 const matches = script.match(pattern.regex);
                 if (matches) {
                     matches.forEach(match => {
-                        issues.push(`${pattern.message}\nMatched: "${match.trim()}"`);
+                        // Clean up the matched string for better readability
+                        const cleanedMatch = match.replace(/\s+/g, ' ').trim();
+                        issues.push(`${pattern.message}<br><strong>Matched:</strong> "${cleanedMatch}"`);
                     });
                 }
             });
